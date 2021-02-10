@@ -184,7 +184,7 @@ sonde_post = api.model('Sonde Post Informations', {
     'name': fields.String,
     'pos_longitude': fields.Float(),
     'pos_latitude': fields.Float(),
-    'active' : fields.Integ
+    #'active' : fields.Integ
 
 })
 @api.route("/api/v1/sonde/add")
