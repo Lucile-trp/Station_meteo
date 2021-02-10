@@ -1,0 +1,59 @@
+--- Configuration ESP8266 --- 
+
+1 - Installer Arduino IDE
+2 - Ajouter un gestionnaire de board pour prendre en charge le ESP8266
+	File --> Preferences --> URL de gestionnaire de cartes supplémentaires
+	http://arduino.esp8266.com/stable/package_esp8266com_index.json
+3 - Télécharger la librairie pour l'ESP8266
+	Outils --> Type de carte --> Gestionnaire de carte
+	Cherche ESP8266
+4 - Sélectionner ESP8266
+	Type de carte --> ESP8266 --> Generic ESP8266
+
+
+
+
+--- Dans le ESP8266 ---
+1 - Créer une fichier SI7021.py et ajouter le code fournis par Julien dans le Teams
+2 - Importer SI7021.py dans le boot.py
+3 - Code à écrire dans boot.py (Affiche la temp et l'humidité dans le console)
+	# This file is executed on every boot (including wake-boot from deepsleep)
+	#import esp
+	#esp.osdebug(None)
+	import uos, machine
+	#uos.dupterm(None, 1) # disable REPL on UART(0)
+	import gc
+	#import webrepl
+	#webrepl.start()
+	gc.collect()
+
+	import si7021
+	from machine import I2C, Pin
+
+	i2c = I2C(-1, Pin(2), Pin(0))
+	s = si7021.SI7021(i2c)
+	print(s.temperature())
+	print(s.humidity())
+	
+4 - Connecter le ESP à internet 
+	def do_connect():
+  	import network
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    if not wlan.isconnected():
+    	print('connexion au réseau de Mariam...')
+      wlan.connect('HUAWEI P20', 'mariamelallali')
+      while not wlan.isconnected():
+            pass
+    print('Connecté à l\'internet')       
+	do_connect()
+
+5 - Requête HTTP POST
+	import urequests
+	request = urequets.post("URL API", data = "DATA ICI")
+
+6 - Configurer timing d'envoi des données
+	import time
+	timing = time.sleep(500) #500 = 5 minutes
+
+	
