@@ -1,4 +1,3 @@
----
 # ZEUS API
 
 
@@ -53,12 +52,10 @@ pip3 install requirements.txt // Installation des dépendances
 ```
 ### Créer l'utilisateur 'zeus' dans la bdd, lui donner tout les droits sur la base station_meteo.
 ```
-mysql -u zeus -p station_meteo < db_schema.sql * // Nourrir la base de données. *
+mysql -u zeus -p station_meteo < db_schema.sql // Nourrir la base de données.
 
-python3 main.py *// Mise en route de l'API*
+python3 main.py // Mise en route de l'API
 ```
-
-
 
 ## INSTALLATION DU CAPTEUR ESP8266
 ### Installation de esptool
