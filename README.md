@@ -1,17 +1,27 @@
 # ZEUS API
+
 ---
+
 **PROJET CUBE**
+
 Description :
 
 
 
 Par :
+
 Mariam EL-ALLALI
+
 Hugo DOURLEN
+
 Grégory LEBLOND
+
 Lucile TRIPIER
 
+
+
 ## LIENS UTILES 
+
 ```
 Pour accéder à la documentation de l'api : localhost:5000/api 
 
@@ -21,6 +31,7 @@ Pour accéder au site web : localhost:5001
 
 
 ## INSTALLATION ET CONFIGURATION SERVEUR 
+Démarceh à suivre pour une nouvelle installation
 
 ```
 *Installation des dépendances* 
