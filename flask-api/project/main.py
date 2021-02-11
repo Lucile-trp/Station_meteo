@@ -17,7 +17,7 @@ from flask import jsonify
 
 # Config Flask App Definition
 app = Flask(__name__)
-api = Api(app=app, version="0.1", doc="/api", title="ZEUS", description="Station meteo en Flask ", default="station meteo", default_label='une première station meteo', validate=True)
+api = Api(app=app, version="0.1", doc="/api", title="ZEUS", description="Projet CUBE : Conception et programmation d'une station météorologique en micropython. Par : Mariam EL-ALLALI / Hugo DOURLEN / Gregory LEBLOND / Lucile TRIPIER", default="API", default_label='Descriptions des routes', validate=True)
 
 # Generate db from http://filldb.info/
 # db_host = "mydb"
@@ -62,9 +62,12 @@ class ReturnDate(Resource):
         """
         Return all values of one mesure 
         """
-        cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE id=%s", id)
-        date = cursor.fetchall()
-        return date, 200
+        try:
+            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE id=%s", id)
+            data = cursor.fetchall()
+            return data, 200
+        except:
+            return 400
 
 
 ##### Retourne toutes les valeurs en base de données
@@ -111,16 +114,60 @@ class ReturnDayMesures(Resource):
         Return all values of the day
         """
         dateNow = datetime.today()
-        datePastDay = dateNow - timedelta(days=1)
+        dateNow = dateNow.strftime("%Y-%m-%d 00:00:00")
 
         data = []
-        cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at BETWEEN '%s' AND '%s'" %(datePastDay, dateNow))
-        data = cursor.fetchall()
-        return jsonify(data)   
+        try:
+            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at >= '%s'" % dateNow)
+            data = cursor.fetchall()
+            return jsonify(data)
+        except:
+            feedback = "La requête a echouée"
+            return feedback, 400
+
+### Retourne la moyenne des valeurs du jour entre 6h et 18h 
+@api.route("/api/v1/mesures/day/moy")
+class ReturnDayMesures(Resource):
+    @api.response(200, 'Success')
+    @api.response(400, 'Error')
+    def get(self):
+        """
+        Return all values of the day
+        """
+        dateNow = datetime.today()
+        morning = dateNow.strftime("%Y-%m-%d 06:00:00")
+        evening = dateNow.strftime("%Y-%m-%d 18:00:00")
+
+        data = []
+        try:
+            cursor.execute("SELECT AVG(temperature), AVG(humidity) FROM mesure WHERE added_at BETWEEN '%s' and '%s' ;" % (morning, evening))
+            data = cursor.fetchall()
+            return jsonify(data)
+        except:
+            feedback = "La requête a echouée"
+            return feedback, 400
 
 ##### Retourne toutes les valeurs des dernières 24hx7
-
-##### Retourne toutes les valeurs des dernières 24hx30
+@api.route("/api/v1/mesures/week")
+class ReturnWeekMesures(Resource):
+    @api.response(200, 'Success')
+    @api.response(400, 'Error')
+    def get(self):
+        """
+        Return all values of the week
+        """
+        dateNow = datetime.today()
+        datePastDay = dateNow - timedelta(days=7)
+        dateNow = dateNow.strftime("%Y-%m-%d 00:00:00")
+        datePastDay = datePastDay.strftime("%Y-%m-%d 00:00:00")
+        data = []
+        try:
+            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at BETWEEN '%s' AND '%s'" %(datePastDay, dateNow))
+            data = cursor.fetchall()
+            return jsonify(data)  
+        except:
+            feedback = "La requête a echouée"
+            return feedback
 
 #### MESURE - POST
 #### Modèle de données
@@ -144,7 +191,6 @@ class postMesure(Resource):
         """
         Add a new value with ESP 
         """
-
         temperature = api.payload['temperature']
         humidity = api.payload['humidity']
         dateNow = datetime.today()
@@ -170,23 +216,25 @@ class Sonde(Resource):
         Return Sonde informations
         :param id:
         """
-        cursor.execute("SELECT * FROM sonde WHERE id=%s", id)
-        data = cursor.fetchall()
-        return data
+        try :
+            cursor.execute("SELECT * FROM sonde WHERE id=%s", id)
+            data = cursor.fetchall()
+            return data
+        except:
+            feedback = "La requête a echouée"
+            return feedback
 
-
+#### Ajouter une sonde
 posts_sonde = reqparse.RequestParser()
 posts_sonde.add_argument('name')
-posts_sonde.add_argument('active')
 posts_sonde.add_argument('pos_longitude')
 posts_sonde.add_argument('pos_latitude')
 sonde_post = api.model('Sonde Post Informations', {
     'name': fields.String,
     'pos_longitude': fields.Float(),
     'pos_latitude': fields.Float(),
-    #'active' : fields.Integ
-
 })
+
 @api.route("/api/v1/sonde/add")
 class SondeAdd(Resource):
     @api.expect(sonde_post)
@@ -197,33 +245,96 @@ class SondeAdd(Resource):
         name = api.payload['name']
         pos_latitude = api.payload['pos_latitude']
         pos_longitude = api.payload['pos_longitude']
+        try:
+            cursor.execute("INSERT INTO sonde (sonde_name, pos_latitude, pos_longitude, active) VALUES ('%s', '%s', '%s', 0);" % (name, pos_latitude, pos_longitude))
+            db.commit()
+            cursor.execute("SELECT * FROM sonde ORDER BY id DESC LIMIT 1")
+            values = cursor.fetchall()
+            return jsonify(values)
+        except:
+            feedback = "La requête a échouée"
+            return feedback
 
-        cursor.execute("INSERT INTO sonde (sonde_name, pos_latitude, pos_longitude, active) VALUES ('%s', '%s', '%s', 0);" % (name, pos_latitude, pos_longitude))
-        db.commit()
-        cursor.execute("SELECT * FROM sonde ORDER BY id DESC LIMIT 1")
-        values = cursor.fetchall()
-        print(values)
-        return jsonify(values)
+put_auth_sonde = reqparse.RequestParser()
+put_auth_sonde.add_argument('active', type=int)
+put_auth_sonde.add_argument('id', type=int)
+put_auth_sonde.add_argument('token')
+argsauth = api.model('Sonde Put Information with Auth', {
+    'active': fields.Integer,
+    'id' :fields.Integer,
+    'token' : fields.String
+})
 
-
-@api.route("/api/v1/sondes/<id>")
+@api.route("/api/v1/sonde/auth/<id>")
 class SondeUpdate(Resource):
     @api.response(200, 'Success')
     @api.response(400, 'Error')
-    @api.expect(sonde_post)
+    @api.expect(argsauth)
     def put(self, id):
         """
-        Update Sonde informations with his ID
-        :param id:
+        Update 'active' information sonde 
+        :param sonde.id:
+        :param token:
+        :param users.id:
         """
+        users_id = api.payload['id']
+        user_token = api.payload['token']
         active = api.payload['active']
 
-        cursor.execute("SELECT id FROM sonde WHERE id=%s", id)
-        cursor.execute("UPDATE sonde SET active = %s WHERE id=%s" % (active, id))
-        db.commit()
-        last_id = cursor.lastrowid
-        return jsonify(last_id)
+        #recupère le token user en fonction de users.id 
+        cursor.execute("SELECT token FROM users WHERE id=%s", users_id)
+        token = cursor.fetchone()
+        token = str(token)
+        user_token = "('" + user_token + "',)"
+        #si token user == token passé en paramètres
+        if token == user_token:
+            cursor.execute("SELECT id FROM sonde WHERE id=%s", id)
+            cursor.execute("UPDATE sonde SET active = %s WHERE id=%s" % (active, id))
+            db.commit()
+            last_id = cursor.lastrowid
+            return jsonify(last_id)
+        else:
+            feedback = "Utilisateur ou token invalide"
+            return feedback
 
+
+del_sonde = reqparse.RequestParser()
+del_sonde.add_argument('active', type=int)
+del_sonde.add_argument('id', type=int)
+del_sonde.add_argument('token')
+argsdel = api.model('Delete sonde Information with Auth', {
+    'id' :fields.Integer,
+    'token' : fields.String
+})
+@api.route("/api/v1/sonde/delete/<id>")
+class DeleteSonde(Resource):
+    @api.response(200, 'Success')
+    @api.response(400, 'Error')
+    @api.expect(argsdel)
+    def delete(self, id):
+        """
+        Supprimer une sonde
+        :param sonde.id:
+        :param user.id:
+        :param token:
+        """
+
+        users_id = api.payload['id']
+        user_token = api.payload['token']
+        #recupère le token user en fonction de users.id 
+        cursor.execute("SELECT token FROM users WHERE id=%s", users_id)
+        token = cursor.fetchone()
+        token = str(token)
+        user_token = "('" + user_token + "',)"
+        #si token user == token passé en paramètres
+        if token == user_token:
+            cursor.execute("DELETE FROM sonde WHERE id = %s" % id)
+            db.commit()
+            feedback = "La donnée à bien été supprimée"
+            return feedback
+        else:
+            feedback = "User ou token invalide, impossible de supprimer la donnée"
+            return feedback
 
 
 if __name__ == '__main__':
