@@ -1,8 +1,10 @@
+---
 # ZEUS API
 
----
+
 
 **PROJET CUBES**
+---
 
 Description :
 
@@ -11,11 +13,8 @@ Description :
 Par :
 
 Mariam EL-ALLALI
-
 Hugo DOURLEN
-
 Grégory LEBLOND
-
 Lucile TRIPIER
 
 
@@ -45,18 +44,19 @@ mysql_secure_installation // Sécurisation de la Base de Données
 
 ```
 ### Récupération du respository GIT
-git clone https://github.com//LIEN VERS GIT  // clonage du dépôt github
+git clone https://github.com/Lucile-trp/Station_meteo.git // clonage du dépôt github
 
-### installationdes dépéndances de L'API
+### installationdes dépendances de L'API
 ```
 cd falsk-api/project // Déplacement dans le fichier API 
-pip3 install requirements.txt // installation des dépendances
+pip3 install requirements.txt // Installation des dépendances
 ```
 ### Créer l'utilisateur 'zeus' dans la bdd, lui donner tout les droits sur la base station_meteo.
+```
+mysql -u zeus -p station_meteo < db_schema.sql * // Nourrir la base de données. *
 
-mysql -u zeus -p station_meteo < db_schema.sql // Nourrir la base de données.
-python3 main.py 
-
+python3 main.py *// Mise en route de l'API*
+```
 
 
 
@@ -74,7 +74,7 @@ Installer Thonny
 File -> Preferences -> URl de gestionnaire de cartes supplémentaires
 ### Télécharger la librairie ESP8266
 Type de carte -> ESP8266 -> Generic ESP8266
-### Créer le fichier si7021.py avec le code fournis par Julien
+### Créer le fichier si7021.py
 ### Importer le fichier si7021.py dans boot.py
 
 ## FRONT
