@@ -17,7 +17,7 @@ from flask import jsonify
 
 # Config Flask App Definition
 app = Flask(__name__)
-api = Api(app=app, version="0.1", doc="/api", title="ZEUS", description="Projet CUBE : Conception et programmation d'une station météorologique en micropython. Par : Mariam EL-ALLALI / Hugo DOURLEN / Gregory LEBLOND / Lucile TRIPIER", default="API", default_label='Descriptions des routes', validate=True)
+api = Api(app=app, version="1.0", doc="/api", title="ZEUS", description="Projet CUBES : Conception et programmation d'une station météorologique en python. <br><br> Par : Mariam EL-ALLALI <br> Hugo DOURLEN <br> Gregory LEBLOND <br> Lucile TRIPIER", default="API", default_label='Descriptions des routes', validate=True)
 
 # Generate db from http://filldb.info/
 # db_host = "mydb"
@@ -25,7 +25,11 @@ db_host = "localhost"
 try:
     db=pymysql.connect(
         host=db_host,
+<<<<<<< HEAD
         user="zeus",
+=======
+        user="zeus", # a changer pour zeus
+>>>>>>> b1035427c9e9af9c1a8f3f823f7dcc719051a54c
         passwd="toortoor",
         db="station_meteo")
     cursor=db.cursor()
@@ -35,7 +39,7 @@ except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
     print(repr(e))
     db=pymysql.connect(
         host=db_host,
-        user="root",
+        user="zeus",
         passwd="toortoor",
         db="station_meteo")
     sql = ["CREATE DATABASE station_meteo;","use station_meteo;"]
@@ -60,7 +64,7 @@ class ReturnDate(Resource):
     @api.response(400, 'Error')
     def get(self, id):
         """
-        Return all values of one mesure 
+        Return all values of one mesure with his ID in parameters
         """
         try:
             cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE id=%s", id)
@@ -79,12 +83,11 @@ class ReturnAll(Resource):
         """
         Return all mesure data
         """
-        try:
-            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure")
-            data = cursor.fetchall()
-            return data, 200
-        except:
-            return 400
+
+        cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure ORDER BY added_at DESC")
+        data = cursor.fetchall()
+        return data, 200
+
 
 
 ##### Retourne le dernier insert
@@ -94,7 +97,7 @@ class ReturnLast(Resource):
     @api.response(400, 'Error')
     def get(self):
         """
-        Return last row insert 
+        Return the last row inserted
         """
         try:
             cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure ORDER BY id DESC LIMIT 1")
@@ -118,7 +121,7 @@ class ReturnDayMesures(Resource):
 
         data = []
         try:
-            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at >= '%s'" % dateNow)
+            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at >= '%s' ORDER BY added_at DESC" % dateNow)
             data = cursor.fetchall()
             return jsonify(data)
         except:
@@ -132,7 +135,7 @@ class ReturnDayMesures(Resource):
     @api.response(400, 'Error')
     def get(self):
         """
-        Return all values of the day
+        Return average of values of the day between 6pm and 6am.
         """
         dateNow = datetime.today()
         morning = dateNow.strftime("%Y-%m-%d 06:00:00")
@@ -162,7 +165,7 @@ class ReturnWeekMesures(Resource):
         datePastDay = datePastDay.strftime("%Y-%m-%d 00:00:00")
         data = []
         try:
-            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at BETWEEN '%s' AND '%s'" %(datePastDay, dateNow))
+            cursor.execute("SELECT id, temperature, humidity, CAST(added_at AS CHAR) FROM mesure WHERE added_at BETWEEN '%s' AND '%s' ORDER BY added_at DESC" %(datePastDay, dateNow))
             data = cursor.fetchall()
             return jsonify(data)  
         except:
@@ -213,7 +216,7 @@ class Sonde(Resource):
     @api.response(400, 'Error')
     def get(self, id):
         """
-        Return Sonde informations
+        Return probe informations
         :param id:
         """
         try :
@@ -240,7 +243,7 @@ class SondeAdd(Resource):
     @api.expect(sonde_post)
     def post(self):
         """
-        Create a new sonde
+        Create a new probe
         """
         name = api.payload['name']
         pos_latitude = api.payload['pos_latitude']
@@ -272,7 +275,7 @@ class SondeUpdate(Resource):
     @api.expect(argsauth)
     def put(self, id):
         """
-        Update 'active' information sonde 
+        Update 'active' probe information
         :param sonde.id:
         :param token:
         :param users.id:
@@ -302,7 +305,7 @@ del_sonde = reqparse.RequestParser()
 del_sonde.add_argument('active', type=int)
 del_sonde.add_argument('id', type=int)
 del_sonde.add_argument('token')
-argsdel = api.model('Delete sonde Information with Auth', {
+argsdel = api.model('Delete probe Information with Auth', {
     'id' :fields.Integer,
     'token' : fields.String
 })
@@ -313,7 +316,7 @@ class DeleteSonde(Resource):
     @api.expect(argsdel)
     def delete(self, id):
         """
-        Supprimer une sonde
+        Delete a probe
         :param sonde.id:
         :param user.id:
         :param token:
