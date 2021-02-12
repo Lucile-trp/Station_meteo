@@ -25,11 +25,7 @@ db_host = "localhost"
 try:
     db=pymysql.connect(
         host=db_host,
-<<<<<<< HEAD
         user="zeus",
-=======
-        user="zeus", # a changer pour zeus
->>>>>>> b1035427c9e9af9c1a8f3f823f7dcc719051a54c
         passwd="toortoor",
         db="station_meteo")
     cursor=db.cursor()
