@@ -11,9 +11,9 @@ Description :
 
 Par :
 
-Mariam EL-ALLALI
-Hugo DOURLEN
-Grégory LEBLOND
+Mariam EL-ALLALI / 
+Hugo DOURLEN / 
+Grégory LEBLOND / 
 Lucile TRIPIER
 
 
@@ -21,7 +21,7 @@ Lucile TRIPIER
 ## LIENS UTILES 
 
 ```
-Pour accéder à la documentation de l'api : localhost:5000/api OU http://zeus.fr/api
+Pour accéder à la documentation de l'api : localhost:5000/api
 
 Pour accéder au site web : localhost:5001
 
@@ -77,9 +77,8 @@ Type de carte -> ESP8266 -> Generic ESP8266
 ## FRONT
 
 ```
-Remplacer tout les 'IP:mbp-de-lucile' par :
--   Soit l'adresse IP du Raspberry si vous hébergez la Web App sur un autre serveur
-        (requis: le serveur doit être connecté au même wifi que le Raspberry et le capteur)
--   Soit localhost ou 127.0.0.1 si vous hébergez sur le Raspberry Pi
+Remplacer tout les 'IP:mbp-de-lucile' par : localhost ou 127.0.0.1 si vous hébergez sur le Raspberry Pi
+
+php -S localhost:5001 //Démarrer un serveur local
 
 ```
