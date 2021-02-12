@@ -1,5 +1,0 @@
-Flask
-flask_bootstrap
-flask_nav
-requests
-gunicorn

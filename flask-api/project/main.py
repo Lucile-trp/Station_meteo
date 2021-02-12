@@ -25,7 +25,7 @@ db_host = "localhost"
 try:
     db=pymysql.connect(
         host=db_host,
-        user="zeus",
+        user="root",
         passwd="toortoor",
         db="station_meteo")
     cursor=db.cursor()
@@ -35,7 +35,7 @@ except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
     print(repr(e))
     db=pymysql.connect(
         host=db_host,
-        user="zeus",
+        user="root",
         passwd="toortoor",
         db="station_meteo")
     sql = ["CREATE DATABASE station_meteo;","use station_meteo;"]
